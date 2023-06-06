@@ -1,4 +1,5 @@
-all: vcdump
+MAINBIN=vc4dump
+all: $(MAINBIN)
 
 CFLAGS := -c -g
 OBJS := filereader \
@@ -7,7 +8,7 @@ OBJS := filereader \
   vc4_scalar_op \
   vc4_decode \
   vc4_instructions \
-  vcdump
+  vc4_dump
 
 OBJS := $(addsuffix .o, $(OBJS))
 OBJS := $(addprefix build/,$(OBJS))
@@ -16,12 +17,11 @@ $(info $(OBJS))
 build/%.o: %.c
 	gcc $(CFLAGS) $^ -o $@
 
-
-vcdump: $(OBJS)
+$(MAINBIN): $(OBJS)
 	gcc -g $^ -o $@
 
-d: vcdump
-	gdb --args vcdump bootcode.bin
+d: $(MAINBIN)
+	gdb --args $@ bootcode.bin
 
 clean:
-	rm -f -v *.o vcdump
+	rm -f -v *.o $(MAINBIN)
