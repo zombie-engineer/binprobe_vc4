@@ -1,4 +1,5 @@
 #include "vc4_decode.h"
+#include "vc4_disas.h"
 #include <stdlib.h>
 #include <sys/fcntl.h>
 #include <sys/stat.h>
@@ -75,9 +76,15 @@ int vc4_dump(int fd)
 		return -1;
 	}
 
+	struct vc4_disas d = {
+		.instr_buffer = 0,
+		.base_addr = 0x8000000,
+		.data_start = 0x900000,
+	};
+
 	while (1) {
 		int i;
-		struct vc4_disas_instruction dinstr;
+		const struct vc4_disas_instruction *decoded_i;
 
 		ret = fetch_next_instr(fd, instr, &instr_sz);
 		if (ret) {
@@ -85,8 +92,8 @@ int vc4_dump(int fd)
 			return ret;
 		}
 
-		ret = vc4_decode_instr(instr, instr_sz, &dinstr);
-		if (ret) {
+		decoded_i = vc4_decode_instr(instr, instr_sz);
+		if (!decoded_i) {
 			const uint8_t *bytecode = (const uint8_t *)instr;
 			printf("Failed to decode instruction: ");
 			for (i = 0; i < instr_sz; ++i) {
@@ -94,7 +101,7 @@ int vc4_dump(int fd)
 			}
 		}
 		dump_bytecode(addr, instr, instr_sz);
-
+		decoded_i->print(&d, instr);
 
 		addr += instr_sz;
 		printf("\n");

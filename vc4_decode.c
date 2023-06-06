@@ -127,7 +127,7 @@ const struct vc4_disas_instruction *vc4_decode_instr16(uint16_t i)
 	if ((i & 0xc000) == 0x4000)
 		return &VC4_DISAS_STRUCT(i16_alu_op);
 
-	return &VC4_DISAS_STRUCT(i16_stub);
+	return NULL;
 }
 
 const struct vc4_disas_instruction *vc4_decode_instr32(uint32_t i)
@@ -179,7 +179,7 @@ const struct vc4_disas_instruction *vc4_decode_instr32(uint32_t i)
 	if ((i & 0xffc0ffe0) == 0xcc000000)
 		return &VC4_DISAS_STRUCT(i32_p_control);
 
-	return &VC4_DISAS_STRUCT(i32_stub);
+	return NULL;
 }
 
 const struct vc4_disas_instruction *vc4_decode_instr48(uint16_t i, uint32_t i32)
@@ -206,7 +206,7 @@ const struct vc4_disas_instruction *vc4_decode_instr48(uint16_t i, uint32_t i32)
 	if ((i & 0xfc00) == 0xec00)
 		return &VC4_DISAS_STRUCT(i48_alu_add);
 
-	return &VC4_DISAS_STRUCT(i48_stub);
+	return NULL;
 }
 
 const struct vc4_disas_instruction *vc4_decode_instr80(uint16_t *i)
@@ -216,28 +216,26 @@ const struct vc4_disas_instruction *vc4_decode_instr80(uint16_t *i)
 
 	if ((i[0] & 0xfc00) == 0xfc00)
 		return &VC4_DISAS_STRUCT(i80_data_op);
-	return &VC4_DISAS_STRUCT(i80_stub);
+	return NULL;
 }
 
-int vc4_decode_instr(uint16_t *i, int i_sz, struct vc4_disas_instruction *res)
+const struct vc4_disas_instruction *vc4_decode_instr(uint16_t *i, int i_sz)
 {
 	const struct vc4_disas_instruction *found = NULL;
 
 	int i_width_bits = bf_extract(i[0], 13, 3);
 
 	if ((i[0] & 0x8000) == 0)
-		found = vc4_decode_instr16(i[0]);
+		return vc4_decode_instr16(i[0]);
 
 	if ((i[0] & 0xfc00) == 0xf400)
-		found = vc4_decode_instr48(i[0], (i[2] << 16)|i[1]);
+		return vc4_decode_instr48(i[0], (i[2] << 16)|i[1]);
 
 	if ((i[0] & 0xf800) == 0xf800)
-		found = vc4_decode_instr80(i);
+		return vc4_decode_instr80(i);
 
 	if ((i[0] & 0xe000) == 0xe000)
-		found = vc4_decode_instr48(i[0], (i[2] << 16)|i[1]);
+		return vc4_decode_instr48(i[0], (i[2] << 16)|i[1]);
 
-	found = vc4_decode_instr32((i[0] << 16) | i[1]);
-	*res = *found;
-	return 0;
+	return vc4_decode_instr32((i[0] << 16) | i[1]);
 }

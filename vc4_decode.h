@@ -8,4 +8,4 @@ struct vc4_disas_instruction {
 	vc4_print_instruction_fn print;
 };
 
-int vc4_decode_instr(uint16_t *i, int i_sz, struct vc4_disas_instruction *res);
+const struct vc4_disas_instruction *vc4_decode_instr(uint16_t *i, int i_sz);
