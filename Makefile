@@ -10,9 +10,12 @@ OBJS := filereader \
   vcdump
 
 OBJS := $(addsuffix .o, $(OBJS))
+OBJS := $(addprefix build/,$(OBJS))
 
-%.o: %.c
+$(info $(OBJS))
+build/%.o: %.c
 	gcc $(CFLAGS) $^ -o $@
+
 
 vcdump: $(OBJS)
 	gcc -g $^ -o $@
