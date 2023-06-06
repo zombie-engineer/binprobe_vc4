@@ -1,26 +1,24 @@
-
 all: vcdump
 
-vc4_scalar_op_table.o: vc4_scalar_op_table.c
-	gcc -c -g $^ -o $@
+CFLAGS := -c -g
+OBJS := filereader \
+  symbol_table \
+  vc4_scalar_op_table \
+  vc4_scalar_op \
+  vc4_decode \
+  vc4_instructions \
+  vcdump
 
-vc4_scalar_op.o: vc4_scalar_op.c
-	gcc -c -g $^ -o $@
+OBJS := $(addsuffix .o, $(OBJS))
 
-filereader.o: filereader.c
-	gcc -c -g $^ -o $@
+%.o: %.c
+	gcc $(CFLAGS) $^ -o $@
 
-symbol_table.o: symbol_table.c
-	gcc -c -g $^ -o $@
-
-vc4_decode.o: vc4_decode.c
-	gcc -c -g $^ -o $@
-
-vc4_instructions.o: vc4_instructions.c
-	gcc -c -g $^ -o $@
-
-vcdump: vcdump.c vc4_decode.o vc4_instructions.o symbol_table.o filereader.o vc4_scalar_op_table.o vc4_scalar_op.o
+vcdump: $(OBJS)
 	gcc -g $^ -o $@
 
 d: vcdump
 	gdb --args vcdump bootcode.bin
+
+clean:
+	rm -f -v *.o vcdump
