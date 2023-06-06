@@ -68,7 +68,6 @@ int vc4_dump(int fd)
 	int ret;
 	uint16_t instr[5];
 	int instr_sz;
-	uint32_t addr = 0;
 
 	ret = lseek(fd, 512, SEEK_SET);
 	if (ret < 0) {
@@ -77,7 +76,7 @@ int vc4_dump(int fd)
 	}
 
 	struct vc4_disas d = {
-		.instr_buffer = 0,
+		.current_pc = 0x8000000,
 		.base_addr = 0x8000000,
 		.data_start = 0x900000,
 	};
@@ -92,7 +91,9 @@ int vc4_dump(int fd)
 			return ret;
 		}
 
+		dump_bytecode(d.current_pc, instr, instr_sz);
 		decoded_i = vc4_decode_instr(instr, instr_sz);
+
 		if (!decoded_i) {
 			const uint8_t *bytecode = (const uint8_t *)instr;
 			printf("Failed to decode instruction: ");
@@ -100,10 +101,10 @@ int vc4_dump(int fd)
 				printf(" %02x", bytecode[i]);
 			}
 		}
-		dump_bytecode(addr, instr, instr_sz);
-		decoded_i->print(&d, instr);
+		else
+			decoded_i->print(&d, instr);
 
-		addr += instr_sz;
+		d.current_pc += instr_sz;
 		printf("\n");
 	}
 	return 0;

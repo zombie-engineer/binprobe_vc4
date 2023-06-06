@@ -118,8 +118,7 @@ static void i80_arg_to_str(char *str, int n, int arg, int ra_x)
 
 static inline uint32_t get_pc(const struct vc4_disas *d, const uint16_t *instr_addr)
 {
-  uint32_t pc = ((const uint32_t *)instr_addr - d->instr_buffer) * sizeof(uint32_t);
-  return pc + d->base_addr;
+  return d->current_pc;
 }
 
 void print_abs_addr(struct vc4_disas *d, uint32_t addr, int as_primary)
