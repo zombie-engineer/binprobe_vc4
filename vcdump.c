@@ -1,3 +1,4 @@
+#include "vc4_decode.h"
 #include <stdlib.h>
 #include <sys/fcntl.h>
 #include <sys/stat.h>
@@ -5,7 +6,7 @@
 #include <stdint.h>
 #include <unistd.h>
 
-static inline int fetch_next_i(int fd, uint16_t i[5], int *i_sz)
+static int fetch_next_instr(int fd, uint16_t i[5], int *i_sz)
 {
 	int size = 2;
 
@@ -64,8 +65,8 @@ static void dump_bytecode(uint32_t addr, uint16_t i[5], int i_sz)
 int vc4_dump(int fd)
 {
 	int ret;
-	uint16_t i[5];
-	int i_sz;
+	uint16_t instr[5];
+	int instr_sz;
 	uint32_t addr = 0;
 
 	ret = lseek(fd, 512, SEEK_SET);
@@ -75,13 +76,27 @@ int vc4_dump(int fd)
 	}
 
 	while (1) {
-		ret = fetch_next_i(fd, i, &i_sz);
+		int i;
+		struct vc4_disas_instruction dinstr;
+
+		ret = fetch_next_instr(fd, instr, &instr_sz);
 		if (ret) {
 			printf("Failed to fetch next instruction: %d\n", ret);
 			return ret;
 		}
 
-		addr += i_sz;
+		ret = vc4_decode_instr(instr, instr_sz, &dinstr);
+		if (ret) {
+			const uint8_t *bytecode = (const uint8_t *)instr;
+			printf("Failed to decode instruction: ");
+			for (i = 0; i < instr_sz; ++i) {
+				printf(" %02x", bytecode[i]);
+			}
+		}
+		dump_bytecode(addr, instr, instr_sz);
+
+
+		addr += instr_sz;
 		printf("\n");
 	}
 	return 0;
