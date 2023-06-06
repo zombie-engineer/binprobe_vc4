@@ -20,8 +20,9 @@ build/%.o: %.c
 $(MAINBIN): $(OBJS)
 	gcc -g $^ -o $@
 
+.PHONY: d
 d: $(MAINBIN)
-	gdb --args $@ bootcode.bin
+	gdb --args $< bootcode.bin
 
 clean:
 	rm -f -v *.o $(MAINBIN)
